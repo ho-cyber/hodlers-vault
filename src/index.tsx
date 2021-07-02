@@ -1,14 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import App from './App';
+import Ancestor from './Ancestor';
 import store from './store'
 import 'semantic-ui-css/semantic.min.css'
 import reportWebVitals from './reportWebVitals';
+import TokenList from './TokenList';
+import Token from './Token';
 
 ReactDOM.render(
   <Provider store={store}>
-    <App/>
+    <Ancestor>
+      <Token/>
+    </Ancestor>
   </Provider>,
   document.getElementById('root')
 );

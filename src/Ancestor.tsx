@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import DatePicker from 'react-datepicker';
-import ERC20Vault from './contracts/ERC20Vault.json';
+import ERC20Vault from './abis/ERC20Vault.json';
 import { useEffect, useState } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
 import { getSelectedAddress, getWeb3Provider, isMetaMaskInstalled, isWalletConnected } from './utils/metaMask';
@@ -15,13 +15,20 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { chainIdToString, chains as supportedChains, getTokenContractAddress } from './utils/supportedChains';
 import { Container } from 'semantic-ui-react';
+import Registry from './contracts/Registry';
 
-function App() {
+function App(props: any) {
   const wallet = useSelector(selectWallet);
   const [date, setDate] = useState(new Date());
+  const [ vaults, setVaults ] = useState([]);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if(wallet.isWalletConnected){
+      Registry.methods.getVaults().call((err: any, result: any) => console.log(err, result));
+    }
+
     (async () => {
         dispatch(setIsMetaMaskInstalled(await isMetaMaskInstalled()));
         dispatch(setIsWalletConnected(await isWalletConnected()));
@@ -40,22 +47,7 @@ function App() {
     })();
   })
 
-  async function deploy(e: any, token: string) {
-    e.preventDefault();
-    const web3 = new Web3(Web3.givenProvider);
-
-    const contract = new web3.eth.Contract(ERC20Vault.abi as any);
-
-    if(token === "LINK") {
-      contract.deploy({
-        data: ERC20Vault.bytecode,
-        arguments: [ getTokenContractAddress(token, wallet.chainId as string), "0x12a3b1B24f0e4f7A036A16a2aF8Fa46Ab7031676", 0]
-      })
-      .send({
-        from: await getSelectedAddress()
-      });
-    }
-  }
+  
 
   async function transfer() {
     // Transfer fund to the vault
@@ -109,30 +101,7 @@ function App() {
       {
         !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button>
       }
-
-      <table>
-        <thead>
-          <th>Token</th>
-          <th>Balance</th>
-          <th>Action</th>
-        </thead>
-        <tr>
-          <td>LINK</td>
-          <td>N/A</td>
-          <td>
-            <button onClick={e => deploy(e, "LINK")}>Create Vault</button>
-          </td>
-        </tr>
-        <tr>
-          <td>ETH</td>
-          <td>1000 $ETH</td>
-          <td>
-          <button onClick={() => transfer()}>Fund</button> 
-          &nbsp;
-          <button onClick={() => transfer()} disabled>Release</button>
-          </td>
-        </tr>
-      </table>
+      
       {/* <form onSubmit={e => deploy(e)}>
         <p>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</p>
         <DatePicker selected={date} onChange={(value: any) => setDate(value)}/><br/>
@@ -147,7 +116,9 @@ function App() {
     {
       wallet.isMetaMaskInstalled ? renderContent() : <button>Please install MetaMask</button>
     }
-      
+    {
+      props.children
+    }
     </Container>
   );
 }
