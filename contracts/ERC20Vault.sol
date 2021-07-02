@@ -7,7 +7,7 @@ import "./IERC20.sol";
 contract ERC20Vault is BaseVault{
     IERC20 immutable internal token;
  
-    constructor(address tokenAddress, uint _releaseTimestampInSeconds) BaseVault(_releaseTimestampInSeconds) {
+    constructor(address tokenAddress, address registryAddress, uint _releaseTimestampInSeconds) BaseVault(registryAddress, _releaseTimestampInSeconds) {
         token = IERC20(tokenAddress);
     }
     

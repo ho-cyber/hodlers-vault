@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./BaseVault.sol";
 
 contract EthVault is BaseVault{
-    constructor(uint _releaseTimestampInSeconds) BaseVault(_releaseTimestampInSeconds) {
+    constructor(address registryAddress, uint _releaseTimestampInSeconds) BaseVault(registryAddress, _releaseTimestampInSeconds) {
     }
     
     function transfer() override internal {
