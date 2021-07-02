@@ -7,21 +7,32 @@ export const slice = createSlice({
     isLoading: true,
     isMetaMaskInstalled: false,
     isWalletConnected: false,
+    isValidChain: null,
+    chainId: null,
   },
   reducers: {
-    metaMaskInstalled: (state, action) => {
+    setIsMetaMaskInstalled: (state, action) => {
       state.isMetaMaskInstalled = action.payload as boolean;
     },
-    walletConnected: (state, action) => {
+    setIsWalletConnected: (state, action) => {
       state.isWalletConnected = action.payload as boolean;
     },
-    loadingFinished: (state) => {
+    setIsChainValid: (state, action) => {
+      state.isValidChain = action.payload;
+      if(action.payload !== true){
+        state.chainId = null;
+      }
+    },
+    setChainId: (state, action) => {
+      state.chainId= action.payload;
+    },
+    setIsLoadingFinished: (state) => {
       state.isLoading = false;
     }
   },
 });
 
-export const { metaMaskInstalled, walletConnected, loadingFinished } = slice.actions;
+export const { setIsMetaMaskInstalled, setIsWalletConnected, setIsLoadingFinished, setIsChainValid, setChainId } = slice.actions;
 
 export const selectWallet = (state: { wallet: IWalletState; }) => state.wallet as IWalletState;
 

@@ -5,12 +5,16 @@ import { useEffect, useState } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
 import { getSelectedAddress, getWeb3Provider, isMetaMaskInstalled, isWalletConnected } from './utils/metaMask';
 import {
-  loadingFinished,
-  metaMaskInstalled,
+  setIsChainValid,
+  setIsLoadingFinished,
+  setIsMetaMaskInstalled,
   selectWallet,
-  walletConnected
+  setIsWalletConnected,
+  setChainId
 } from './slices/walletSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { chainIdToString, chains as supportedChains } from './utils/supportedChains';
+import { Container } from 'semantic-ui-react';
 
 function App() {
   const wallet = useSelector(selectWallet);
@@ -25,13 +29,13 @@ function App() {
         if(!mounted){
             return;
         }
-        dispatch(metaMaskInstalled(await isMetaMaskInstalled()));
-        dispatch(walletConnected(await isWalletConnected()));
-        dispatch(loadingFinished());
+        dispatch(setIsMetaMaskInstalled(await isMetaMaskInstalled()));
+        dispatch(setIsWalletConnected(await isWalletConnected()));
+        dispatch(setIsLoadingFinished());
         
         if(wallet.isMetaMaskInstalled) {
           const provider = getWeb3Provider();
-          
+
           provider.on('accountsChanged', handleAccountsChanged);
           provider.on('chainChanged', handleChainChanged);
         }
@@ -71,42 +75,90 @@ function App() {
   async function connect() {
     const provider = getWeb3Provider();
     await provider.request({ method: 'eth_requestAccounts' });
-    dispatch(walletConnected(true));
+    dispatch(setIsWalletConnected(true));
 
     const chainId = await provider.request({ method: 'eth_chainId' });
+    handleChainChanged(chainId);
 
     provider.on('accountsChanged', handleAccountsChanged);
     provider.on('chainChanged', handleChainChanged);
   }
 
-  function handleChainChanged(chainId: number) {
-    console.log(chainId);
+  function handleChainChanged(chainId: string) {
+    // If the chainId is not supported, we will display the warning
+    if(supportedChains.indexOf(chainId) === -1){
+      dispatch(setIsChainValid(false));
+    }else{
+      // Set chain ID if it is changed
+      if(wallet.chainId !== chainId){
+        dispatch(setChainId(chainId));
+      }
+      
+      // Set chain validity status if it was previously invalid
+      if(wallet.isValidChain === false){
+        dispatch(setIsChainValid(true));
+      }
+    }
   }
 
-  function handleAccountsChanged() {
-  }
+  function handleAccountsChanged(accounts: any) {
+    if (accounts.length === 0) {
+      // MetaMask is locked or the user has not connected any accounts
+      window.location.reload();
+    } 
+}
   
   function renderContent() {
     return <>
       {
+        wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
+      }
+      {
+        wallet.isValidChain === false && <p>Wrong chain. We only support Mainnet and Rinkeby</p>
+      }
+      {
         !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button>
       }
-      <form onSubmit={e => deploy(e)}>
-        <label>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</label><br/>
+
+      <table>
+        <thead>
+          <th>Token</th>
+          <th>Balance</th>
+          <th>Action</th>
+        </thead>
+        <tr>
+          <td>LINK</td>
+          <td>N/A</td>
+          <td>
+            <button>Create Vault</button>
+          </td>
+        </tr>
+        <tr>
+          <td>ETH</td>
+          <td>1000 $ETH</td>
+          <td>
+          <button onClick={() => transfer()}>Fund</button> 
+          &nbsp;
+          <button onClick={() => transfer()} disabled>Release</button>
+          </td>
+        </tr>
+      </table>
+      {/* <form onSubmit={e => deploy(e)}>
+        <p>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</p>
         <DatePicker selected={date} onChange={(value: any) => setDate(value)}/><br/>
         <button>Create Vault</button>
       </form>
-      <button onClick={() => transfer()}>Transfer fund to your Vault </button>
+       */}
     </>
   }
 
   return (
-    <div className="App">
+    <Container>
     {
       wallet.isMetaMaskInstalled ? renderContent() : <button>Please install MetaMask</button>
     }
       
-    </div>
+    </Container>
   );
 }
 
