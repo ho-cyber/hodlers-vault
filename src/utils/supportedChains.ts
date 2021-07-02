@@ -1,3 +1,5 @@
+import tokens from './tokens';
+
 export function chainIdToString(chainId: string) {
     switch(chainId) {
         case "0x1": 
@@ -7,6 +9,10 @@ export function chainIdToString(chainId: string) {
         default:
             return "Unknown"
     }
+}
+
+export function getTokenContractAddress(token: string, chainId: string) {
+    return tokens[chainId][token];
 }
 
 export const chains = [

@@ -13,7 +13,7 @@ import {
   setChainId
 } from './slices/walletSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { chainIdToString, chains as supportedChains } from './utils/supportedChains';
+import { chainIdToString, chains as supportedChains, getTokenContractAddress } from './utils/supportedChains';
 import { Container } from 'semantic-ui-react';
 
 function App() {
@@ -22,13 +22,7 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Use this technique to ensure that we don't query MetaMask everytime the component states are updated
-    let mounted = true;
-
     (async () => {
-        if(!mounted){
-            return;
-        }
         dispatch(setIsMetaMaskInstalled(await isMetaMaskInstalled()));
         dispatch(setIsWalletConnected(await isWalletConnected()));
         dispatch(setIsLoadingFinished());
@@ -38,34 +32,29 @@ function App() {
 
           provider.on('accountsChanged', handleAccountsChanged);
           provider.on('chainChanged', handleChainChanged);
+
+          // TODO duplicate code
+          const chainId = await provider.request({ method: 'eth_chainId' });
+          handleChainChanged(chainId);
         }
     })();
+  })
 
-    return function cleanup() {
-        mounted = false;
-    }
-})
-
-  async function deploy(e: any) {
+  async function deploy(e: any, token: string) {
     e.preventDefault();
-    console.log(date.getTime() / 1000);
-
     const web3 = new Web3(Web3.givenProvider);
-    const accounts = await web3.eth.getAccounts();
 
     const contract = new web3.eth.Contract(ERC20Vault.abi as any);
 
-    console.log(accounts);
-    console.log(contract);
-
-    // contract.deploy({
-    //   data: ERC20Vault.bytecode,
-    //   arguments: [ "0x01BE23585060835E02B77ef475b0Cc51aA1e0709", 0]
-    // })
-    // .send({
-    //   from: accounts[0]
-    // })
-    // .then(inst => setVaultContract(inst.options.address));
+    if(token === "LINK") {
+      contract.deploy({
+        data: ERC20Vault.bytecode,
+        arguments: [ getTokenContractAddress(token, wallet.chainId as string), "0x12a3b1B24f0e4f7A036A16a2aF8Fa46Ab7031676", 0]
+      })
+      .send({
+        from: await getSelectedAddress()
+      });
+    }
   }
 
   async function transfer() {
@@ -77,6 +66,7 @@ function App() {
     await provider.request({ method: 'eth_requestAccounts' });
     dispatch(setIsWalletConnected(true));
 
+    // TODO duplicate code
     const chainId = await provider.request({ method: 'eth_chainId' });
     handleChainChanged(chainId);
 
@@ -130,7 +120,7 @@ function App() {
           <td>LINK</td>
           <td>N/A</td>
           <td>
-            <button>Create Vault</button>
+            <button onClick={e => deploy(e, "LINK")}>Create Vault</button>
           </td>
         </tr>
         <tr>
