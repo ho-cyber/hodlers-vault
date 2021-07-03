@@ -1,17 +1,18 @@
-import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import Ancestor from './Ancestor';
+import App from './components/App';
 import store from './store'
 import 'semantic-ui-css/semantic.min.css'
 import reportWebVitals from './reportWebVitals';
-import Token from './Token';
+import Token from './components/Token';
+import LandingPage from './components/LandingPage';
 
 ReactDOM.render(
   <Provider store={store}>
-    <Ancestor>
-      <Token token={"LINK"}/>
-    </Ancestor>
+    {/* <App>
+      <Token/>
+    </App> */}
+    <LandingPage/>
   </Provider>,
   document.getElementById('root')
 );

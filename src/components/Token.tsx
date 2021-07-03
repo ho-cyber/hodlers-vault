@@ -2,14 +2,14 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import Web3 from "web3";
-import ERC20Vault from './abis/ERC20Vault.json';
-import BaseVault from './abis/BaseVault.json';
-import EthVault from './abis/EthVault.json';
-import IERC20 from './abis/IERC20.json';
-import Registry from './abis/Registry.json';
-import { selectWallet } from "./slices/walletSlice";
-import { getSelectedAddress } from "./utils/metaMask";
-import { getTokenContractAddress } from "./utils/supportedChains";
+import ERC20Vault from '../abis/ERC20Vault.json';
+import BaseVault from '../abis/BaseVault.json';
+import EthVault from '../abis/EthVault.json';
+import IERC20 from '../abis/IERC20.json';
+import Registry from '../abis/Registry.json';
+import { selectWallet } from "../slices/walletSlice";
+import { getSelectedAddress } from "../utils/metaMask";
+import { getTokenContractAddress } from "../utils/supportedChains";
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -21,7 +21,7 @@ interface IVaults {
     }>
 };
 
-export default function Token(props: { token: string }) {
+export default function Token() {
     const wallet = useSelector(selectWallet);
 
     const [loading, setLoading] = useState(true);

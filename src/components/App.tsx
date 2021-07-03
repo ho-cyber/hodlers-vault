@@ -1,9 +1,6 @@
-import Web3 from 'web3';
-import DatePicker from 'react-datepicker';
-import ERC20Vault from './abis/ERC20Vault.json';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import "react-datepicker/dist/react-datepicker.css";
-import { getSelectedAddress, getWeb3Provider, isMetaMaskInstalled, isWalletConnected } from './utils/metaMask';
+import { getWeb3Provider, isMetaMaskInstalled, isWalletConnected } from '../utils/metaMask';
 import {
   setIsChainValid,
   setIsLoadingFinished,
@@ -11,11 +8,10 @@ import {
   selectWallet,
   setIsWalletConnected,
   setChainId
-} from './slices/walletSlice';
+} from '../slices/walletSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { chainIdToString, chains as supportedChains, getTokenContractAddress } from './utils/supportedChains';
+import { chainIdToString, chains as supportedChains } from '../utils/supportedChains';
 import { Container } from 'semantic-ui-react';
-import Registry from './contracts/Registry';
 
 function App(props: any) {
   const wallet = useSelector(selectWallet);
