@@ -16,6 +16,6 @@ export function getTokenContractAddress(token: string, chainId: string) {
 }
 
 export const chains = [
-    "0x1", // Mainnet
+    // "0x1", // Mainnet
     "0x4"  // Rinkeby
 ]

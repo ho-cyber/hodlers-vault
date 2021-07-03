@@ -19,8 +19,6 @@ import Registry from './contracts/Registry';
 
 function App(props: any) {
   const wallet = useSelector(selectWallet);
-  const [date, setDate] = useState(new Date());
-  const [ vaults, setVaults ] = useState([]);
 
   const dispatch = useDispatch();
 
@@ -54,6 +52,8 @@ function App(props: any) {
 
     provider.on('accountsChanged', handleAccountsChanged);
     provider.on('chainChanged', handleChainChanged);
+    
+    window.location.reload();
   }
 
   function handleChainChanged(chainId: string) {
@@ -80,41 +80,23 @@ function App(props: any) {
     } 
 }
   
-  function renderContent() {
-    return <>
-      {
-        wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
-      }
-      {
-        wallet.isValidChain === false && <p>Wrong chain. We only support Mainnet and Rinkeby</p>
-      }
-      {
-        !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button>
-      }
-      
-      {/* <form onSubmit={e => deploy(e)}>
-        <p>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</p>
-        <DatePicker selected={date} onChange={(value: any) => setDate(value)}/><br/>
-        <button>Create Vault</button>
-      </form>
-       */}
-    </>
-  }
-
   return (
     <Container>
-      {
-        wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
-      }
-      {
-        wallet.isValidChain === false && <p>Wrong chain. We only support Mainnet and Rinkeby</p>
-      }
-      {
-        !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button>
-      }
-      {
-        props.children
-      }
+      <div>
+        {
+          wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
+        }
+        {
+          wallet.isValidChain === false && <p>Wrong chain. We only support Rinkeby. Please switch to Rinkeby and refresh the page.</p>
+        }
+        {
+          wallet.isMetaMaskInstalled ? !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button> : <p>MetaMask is not installed. Please install MetaMask.</p>
+          
+        }
+        {
+          props.children
+        }
+      </div>
     </Container>
   );
 }

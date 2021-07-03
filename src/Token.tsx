@@ -33,6 +33,8 @@ export default function Token(props: { token: string }) {
     const [fundMode, setFundMode] = useState({} as {[key:string]: boolean});
     const [selectedAmount, setSelectedAmount] = useState("0");
 
+    const [showStuff, setShowStuff] = useState(false);
+
     function setFundModeForVault(address: string, isFundMode: boolean) {
         setFundMode({
             [address]: isFundMode
@@ -64,7 +66,10 @@ export default function Token(props: { token: string }) {
 
     useEffect(() => {
         (async () => {
-            await getVaults();
+            if(Web3.givenProvider && (await Web3.givenProvider.request({ method: 'eth_accounts' })).length > 0){
+                setShowStuff(true);
+                await getVaults();
+            }
             setLoading(false);
         })();
     }, []);
@@ -101,6 +106,7 @@ export default function Token(props: { token: string }) {
     }
 
     async function getVaults() {
+        
         const web3 = new Web3(Web3.givenProvider);
         const registry = new web3.eth.Contract(Registry.abi as any, registryAddress);
 
@@ -224,7 +230,9 @@ export default function Token(props: { token: string }) {
     return <>
         <div>
             {
-                !createMode ? <button disabled={creatingVault} onClick={() => setCreateMode(true)}>Create Vault</button> : <>
+                showStuff && <>
+                {
+                    !createMode ? <button disabled={creatingVault} onClick={() => setCreateMode(true)}>Create Vault</button> : <>
                     {
                         creatingVault ? <p>Creating {selectedToken} Vault. It could take up to 1 minute. Please wait...</p> : <>
                             <p>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</p>
@@ -235,6 +243,9 @@ export default function Token(props: { token: string }) {
                             <DatePicker minDate={now} selected={selectedDate} onChange={(value: any) => setSelectedDate(value)}/> &nbsp; <button  onClick={e => createVault(selectedToken)}>Create Vault</button> &nbsp; <button onClick={() => setCreateMode(false)}>Cancel</button>
                         </>
                     }
+                    </>
+                }
+                    
                 </>
             }
         </div>
