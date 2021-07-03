@@ -10,6 +10,8 @@ import Registry from './abis/Registry.json';
 import { selectWallet } from "./slices/walletSlice";
 import { getSelectedAddress } from "./utils/metaMask";
 import { getTokenContractAddress } from "./utils/supportedChains";
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 interface IVaults {
     [key: string] : Array<{
@@ -21,9 +23,38 @@ interface IVaults {
 
 export default function Token(props: { token: string }) {
     const wallet = useSelector(selectWallet);
-    const [loading, setLoading] = useState(false);
-    const [funding, setFunding] = useState(false);
-    const [releasing, setReleasing] = useState(false);
+
+    const [createMode, setCreateMode] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedToken, setSelectedToken] = useState("ETH");
+
+    const [fundMode, setFundMode] = useState({} as {[key:string]: boolean});
+    const [selectedAmount, setSelectedAmount] = useState("0");
+
+    function setFundModeForVault(address: string, isFundMode: boolean) {
+        setFundMode({
+            [address]: isFundMode
+        });
+    }
+
+    const [creatingVault, setCreatingVault] = useState(false);
+    const [funding, setFunding] = useState({} as {[key:string]: boolean});
+    const [releasing, setReleasing] = useState({} as {[key:string]: boolean});
+
+    function setFundingForVault(address: string, isFunding: boolean) {
+        setFunding({
+            ...funding,
+            [address]: isFunding
+        });
+    }
+
+    function setReleasingForVault(address: string, isReleasing: boolean) {
+        setReleasing({
+            ...releasing,
+            [address]: isReleasing
+        });
+    }
+
     const [vaults, setVaults] = useState({} as IVaults);
     const now = new Date();
 
@@ -32,7 +63,6 @@ export default function Token(props: { token: string }) {
 
     useEffect(() => {
         (async () => {
-            await getEthBalance(ethVault);
             await getVaults();
         })();
     }, []);
@@ -94,63 +124,78 @@ export default function Token(props: { token: string }) {
         return web3.utils.fromWei(await web3.eth.getBalance(address));
     }
 
-    async function createVault(e: any, token: string) {
-        e.preventDefault();
-        setLoading(true);
+    async function createVault(token: string) {
+        setCreatingVault(true);
         const web3 = new Web3(Web3.givenProvider);
     
         if(token === "ETH"){
             const contract = new web3.eth.Contract(EthVault.abi as any);
             contract.deploy({
                 data: EthVault.bytecode,
-                arguments: [registryAddress, 0]
+                arguments: [registryAddress, selectedDate.getTime() / 1000]
             })
             .send({
                 from: await getSelectedAddress()
             })
-            .finally(() => setLoading(false));
+            .finally(() => resetVaultFlags());
         }
 
         if(token === "LINK") {
             const contract = new web3.eth.Contract(ERC20Vault.abi as any);
             contract.deploy({
                 data: ERC20Vault.bytecode,
-                arguments: [ getTokenContractAddress(token, wallet.chainId as string), "LINK", registryAddress, 0]
+                arguments: [ getTokenContractAddress(token, wallet.chainId as string), "LINK", registryAddress, selectedDate.getTime() / 1000]
             })
             .send({
                 from: await getSelectedAddress()
             })
-            .finally(() => setLoading(false));
+            .finally(() => resetVaultFlags());
         }
     }
 
-    async function fund(contractAddress: string, amount: number) {
-        const web3 = new Web3(Web3.givenProvider);
-        const link = getTokenContract(web3);
-        link.methods.transfer(contractAddress, web3.utils.toWei(amount.toString()))
-        .send({
-            from: await getSelectedAddress()
-        });
+    function resetVaultFlags() {
+        setCreatingVault(false); setCreateMode(false)
     }
 
-    async function fundEth(vaultAddress: string, amount: number) {
+    async function fund(vaultAddress: string, amount: string) {
+        setFundingForVault(vaultAddress, true);
+        const web3 = new Web3(Web3.givenProvider);
+        const link = getTokenContract(web3);
+        link.methods.transfer(vaultAddress, web3.utils.toWei(amount.toString()))
+        .send({
+            from: await getSelectedAddress()
+        })
+        .finally(() => resetFundFlags(vaultAddress));
+    }
+
+    async function fundEth(vaultAddress: string, amount: string) {
+        setFundingForVault(vaultAddress, true);
         const web3 = new Web3(Web3.givenProvider);
         const ethVault = new web3.eth.Contract(EthVault.abi as any, vaultAddress);
         ethVault.methods.fund()
         .send({
             from: await getSelectedAddress(),
             value: web3.utils.toWei(amount.toString())
-        });
+        })
+        .finally(() => resetFundFlags(vaultAddress));
+    }
+
+    function resetFundFlags(address: string) {
+        setFundMode({});
+        setSelectedAmount("0");
+        setFundingForVault(address, false);
     }
 
     async function release(address: string) {
+        setReleasingForVault(address, true);
         const web3 = new Web3(Web3.givenProvider);
         const contract = new web3.eth.Contract(BaseVault.abi as any, address);
 
         contract.methods.release()
         .send({
             from: await getSelectedAddress()
-        });
+        })
+        .finally(() => setReleasingForVault(address, false));
     }
 
     function getTokenContract(web3: Web3) {
@@ -162,13 +207,31 @@ export default function Token(props: { token: string }) {
         return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
     }
 
+    function renderFundButton(token: string, vaultAddress: string) {
+        return fundMode[vaultAddress] ? <> 
+            <input type="number" value={selectedAmount} onChange={e=>setSelectedAmount(e.target.value)}/> &nbsp; 
+            <button onClick={() => token === "ETH" ? fundEth(vaultAddress, selectedAmount) : fund(vaultAddress, selectedAmount)}>Go</button> &nbsp; 
+            <button onClick={() => setFundModeForVault(vaultAddress, false)}>Cancel</button>
+        </> : <button onClick={()=>setFundModeForVault(vaultAddress, true)}>Fund</button>
+    }
+
     return <>
-        <p>
-            <button disabled={loading} onClick={e => createVault(e, props.token)}>Create Vault</button>
+        <div>
             {
-                loading && <span>&nbsp; Creating {props.token} Vault...</span>
+                !createMode ? <button disabled={creatingVault} onClick={() => setCreateMode(true)}>Create Vault</button> : <>
+                    {
+                        creatingVault ? <p>Creating {selectedToken} Vault. It could take up to 1 minute. Please wait...</p> : <>
+                            <p>Choose the Release date. Please note that you can only do this ONCE. After that, you fund won't be available until the Release date and you won't be able to change it!</p>
+                            <select onChange={e => setSelectedToken(e.target.value)} defaultValue={selectedToken}>
+                                <option value="ETH">ETH</option>
+                                <option value="LINK">LINK</option>
+                            </select> &nbsp;
+                            <DatePicker minDate={now} selected={selectedDate} onChange={(value: any) => setSelectedDate(value)}/> &nbsp; <button  onClick={e => createVault(selectedToken)}>Create Vault</button> &nbsp; <button onClick={() => setCreateMode(false)}>Cancel</button>
+                        </>
+                    }
+                </>
             }
-        </p>
+        </div>
     
         <table>
             <thead>
@@ -187,7 +250,14 @@ export default function Token(props: { token: string }) {
                             <td>{vault.address}</td>
                             <td>{vault.balance} {token}</td>
                             <td>{formatDate(vault.releaseDate)}</td>
-                            <td><button onClick={() => token === "ETH" ? fundEth(vault.address, 1) : fund(vault.address, 1)}>Fund</button> &nbsp; <button disabled={now < vault.releaseDate} onClick={() => vault}>Release</button></td>
+                            <td>
+                                {
+                                    funding[vault.address] ? <span>Funding. It could take up to 1 minute...</span> :
+                                    releasing[vault.address] ? <span>Releasing. It could take up to 1 minute...</span> : <>
+                                        {renderFundButton(token, vault.address)} &nbsp; <button disabled={now < vault.releaseDate} onClick={() => release(vault.address)}>Release</button>
+                                    </>
+                                }
+                            </td>
                         </tr>
                     }))
                 }

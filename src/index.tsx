@@ -5,7 +5,6 @@ import Ancestor from './Ancestor';
 import store from './store'
 import 'semantic-ui-css/semantic.min.css'
 import reportWebVitals from './reportWebVitals';
-import TokenList from './TokenList';
 import Token from './Token';
 
 ReactDOM.render(
