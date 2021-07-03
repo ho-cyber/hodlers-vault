@@ -4,9 +4,18 @@ import imageVault from '../assets/vault.jpg';
 import imageDip from '../assets/dip.jpg';
 import imageEthereum from '../assets/ethereum.png';
 import imageIPFS from '../assets/ipfs.png';
+import { Link } from "react-router-dom";
+import {
+    selectPage,
+    setCurrentPage,
+  } from '../slices/pageSlice';
+import { useDispatch, useSelector } from "react-redux";
 
 export default function LandingPage() 
 {
+    const page = useSelector(selectPage);
+    const dispatch = useDispatch();
+
     const block = {
         display: "block",
         width: "300px",
@@ -40,9 +49,12 @@ export default function LandingPage()
             <Message style={block}>HODLer's Vault is secured by the Ethereum blockchain and hosted on IPFS. We don't run on any centralized server, or have access to your funds. It's fully decentralized.</Message>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', margin: 50}}>
-            <Button primary>
-                So what are you waiting for? Join the Diamond Hand League.
-            </Button>
+            <Link to="/tokens">
+                <Button primary onClick={() => dispatch(setCurrentPage("tokens")) }>
+                    So what are you waiting for? Join the Diamond Hand League.
+                </Button>
+            </Link>
+            
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end'}}>

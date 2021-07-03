@@ -8,16 +8,19 @@ import Token from './components/Token';
 import LandingPage from './components/LandingPage';
 import TopLevelThing from './components/TopLevelThing';
 import { HowItWorks } from './components/HowItWorks';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 ReactDOM.render(
   <Provider store={store}>
-    <TopLevelThing>
-      {/* <App>
-        <Token/>
-      </App> */}
-      {/* <LandingPage/> */}
-      <HowItWorks/>
-    </TopLevelThing>
+    <BrowserRouter>
+      <TopLevelThing>
+        <Switch>
+          <Route path="/tokens"><App><Token/></App></Route>
+          <Route exact path="/howitworks"><HowItWorks/></Route>
+          <Route path="/"><LandingPage/></Route>
+        </Switch>
+      </TopLevelThing>
+    </BrowserRouter>
   </Provider>,
   document.getElementById('root')
 );
