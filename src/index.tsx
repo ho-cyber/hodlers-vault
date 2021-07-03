@@ -6,13 +6,16 @@ import 'semantic-ui-css/semantic.min.css'
 import reportWebVitals from './reportWebVitals';
 import Token from './components/Token';
 import LandingPage from './components/LandingPage';
+import TopLevelThing from './components/TopLevelThing';
 
 ReactDOM.render(
   <Provider store={store}>
-    {/* <App>
-      <Token/>
-    </App> */}
-    <LandingPage/>
+    <TopLevelThing>
+      <App>
+        <Token/>
+      </App>
+      {/* <LandingPage/> */}
+    </TopLevelThing>
   </Provider>,
   document.getElementById('root')
 );

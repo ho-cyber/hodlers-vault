@@ -11,7 +11,7 @@ import {
 } from '../slices/walletSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { chainIdToString, chains as supportedChains } from '../utils/supportedChains';
-import { Container } from 'semantic-ui-react';
+import { Button, Container, Message } from 'semantic-ui-react';
 
 function App(props: any) {
   const wallet = useSelector(selectWallet);
@@ -77,18 +77,20 @@ function App(props: any) {
 }
   
   return (
-    <Container>
+    <Container style={{marginTop: 10}}>
       <div>
         {
-          wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
+          wallet.chainId !== null && <p style={{textAlign: 'center'}}>You're on {chainIdToString(wallet.chainId as string)}</p>
         }
         {
-          wallet.isValidChain === false && <p>Wrong chain. We only support Rinkeby. Please switch to Rinkeby and refresh the page.</p>
+          wallet.isValidChain === false && <p style={{textAlign: 'center'}}>Wrong chain. We only support Rinkeby. Please switch to Rinkeby and refresh the page.</p>
         }
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         {
-          wallet.isMetaMaskInstalled ? !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button> : <p>MetaMask is not installed. Please install MetaMask.</p>
-          
+          wallet.isMetaMaskInstalled ? !wallet.isWalletConnected && <Button onClick={() => connect()}>Connect</Button> : <Message error>MetaMask is not installed. Please install MetaMask.</Message>
         }
+        </div>
+       
         {
           props.children
         }
