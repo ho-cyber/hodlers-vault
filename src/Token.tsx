@@ -24,6 +24,8 @@ interface IVaults {
 export default function Token(props: { token: string }) {
     const wallet = useSelector(selectWallet);
 
+    const [loading, setLoading] = useState(true);
+
     const [createMode, setCreateMode] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedToken, setSelectedToken] = useState("ETH");
@@ -59,15 +61,15 @@ export default function Token(props: { token: string }) {
     const now = new Date();
 
     const registryAddress = "0x64e3A6F2443d135176F2c82FA9303DA6B4606412";
-    const ethVault = "0x51c0caAE265E0Ec56c3D76516F1Ba094475AD0AD";
 
     useEffect(() => {
         (async () => {
             await getVaults();
+            setLoading(false);
         })();
     }, []);
 
-    async function parseVaults(web3: Web3, rawShit: Array<string>) {
+    async function parseVaults(rawShit: Array<string>) {
         const vaults: IVaults = {};
         const vaultCount = rawShit.length;
         for (let i = 0; i < vaultCount; i++) {
@@ -102,9 +104,10 @@ export default function Token(props: { token: string }) {
         const web3 = new Web3(Web3.givenProvider);
         const registry = new web3.eth.Contract(Registry.abi as any, registryAddress);
 
-        registry.methods.getVaults().call({
+        const res = await registry.methods.getVaults().call({
             from: await getSelectedAddress()
-        }, async (err: any, res: any) => setVaults(await parseVaults(web3, res)));
+        });
+        setVaults(await parseVaults(res));
     }
 
     async function getReleaseTimestamp(address: string) {
@@ -165,6 +168,7 @@ export default function Token(props: { token: string }) {
         .send({
             from: await getSelectedAddress()
         })
+        .then(async () => await getVaults())
         .finally(() => resetFundFlags(vaultAddress));
     }
 
@@ -177,6 +181,7 @@ export default function Token(props: { token: string }) {
             from: await getSelectedAddress(),
             value: web3.utils.toWei(amount.toString())
         })
+        .then(async () => await getVaults())
         .finally(() => resetFundFlags(vaultAddress));
     }
 
@@ -195,6 +200,7 @@ export default function Token(props: { token: string }) {
         .send({
             from: await getSelectedAddress()
         })
+        .then(async () => await getVaults())
         .finally(() => setReleasingForVault(address, false));
     }
 
@@ -235,33 +241,45 @@ export default function Token(props: { token: string }) {
     
         <table>
             <thead>
-                <th>Token</th>
-                <th>Vault</th>
-                <th>Balance</th>
-                <th>Release Date</th>
-                <th>Action</th>
+                <tr>
+                    <th>Token</th>
+                    <th>Vault</th>
+                    <th>Balance</th>
+                    <th>Release Date</th>
+                    <th>Action</th>
+                </tr>
             </thead>
-            <tbody>
-                {
-                    Object.keys(vaults).map(token => 
-                        vaults[token].map(vault => {
-                            return <tr>
-                            <td>{token}</td>
-                            <td>{vault.address}</td>
-                            <td>{vault.balance} {token}</td>
-                            <td>{formatDate(vault.releaseDate)}</td>
-                            <td>
-                                {
-                                    funding[vault.address] ? <span>Funding. It could take up to 1 minute...</span> :
-                                    releasing[vault.address] ? <span>Releasing. It could take up to 1 minute...</span> : <>
-                                        {renderFundButton(token, vault.address)} &nbsp; <button disabled={now < vault.releaseDate} onClick={() => release(vault.address)}>Release</button>
-                                    </>
-                                }
-                            </td>
+            {
+                loading ? <tbody>
+                    <tr>
+                        <td colSpan={5}>Loading your precious Vaults...</td>
+                    </tr>
+                    </tbody> : 
+                <tbody>
+                    {
+                        Object.keys(vaults).length > 0 ? 
+                        Object.keys(vaults).map(token => 
+                            vaults[token].map(vault => {
+                                return <tr key={vault.address}>
+                                <td>{token}</td>
+                                <td>{vault.address}</td>
+                                <td>{vault.balance} {token}</td>
+                                <td>{formatDate(vault.releaseDate)}</td>
+                                <td>
+                                    {
+                                        funding[vault.address] ? <span>Funding. It could take up to 1 minute...</span> :
+                                        releasing[vault.address] ? <span>Releasing. It could take up to 1 minute...</span> : <>
+                                            {renderFundButton(token, vault.address)} &nbsp; <button disabled={now < vault.releaseDate} onClick={() => release(vault.address)}>Release</button>
+                                        </>
+                                    }
+                                </td>
+                            </tr>
+                        })) : <tr>
+                            <td colSpan={5}>Looks like you don't have any Vault yet.</td>
                         </tr>
-                    }))
-                }
-            </tbody>
+                    }
+                </tbody>
+            }
         </table>
     </>
 }
