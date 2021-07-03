@@ -227,7 +227,7 @@ export default function Token() {
             <Input type="number" value={selectedAmount} onChange={e=>setSelectedAmount(e.target.value)}/> &nbsp; 
             <Button onClick={() => token === "ETH" ? fundEth(vaultAddress, selectedAmount) : fund(vaultAddress, selectedAmount)}>Go</Button> &nbsp; 
             <Button onClick={() => setFundModeForVault(vaultAddress, false)}>Cancel</Button>
-        </> : <Button color='red' onClick={()=>setFundModeForVault(vaultAddress, true)}>Fund</Button>
+        </> : <Button onClick={()=>setFundModeForVault(vaultAddress, true)}>Fund</Button>
     }
 
     return <>
@@ -236,7 +236,7 @@ export default function Token() {
                 showStuff && <>
                 {
                     !createMode ? <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button primary disabled={creatingVault} onClick={() => setCreateMode(true)}>Create Vault</Button>
+                        <Button disabled={creatingVault} onClick={() => setCreateMode(true)}>Create Vault</Button>
                     </div>
                     : <div style={{ textAlign: 'right'}}>
                     {
@@ -246,7 +246,7 @@ export default function Token() {
                                 <option value="ETH">ETH</option>
                                 <option value="LINK">LINK</option>
                             </select> &nbsp;
-                            <DatePicker minDate={now} selected={selectedDate} onChange={(value: any) => setSelectedDate(value)}/> &nbsp; <Button primary onClick={e => createVault(selectedToken)}>Go</Button> &nbsp; <Button color='yellow' onClick={() => setCreateMode(false)}>Cancel</Button>
+                            <DatePicker minDate={now} selected={selectedDate} onChange={(value: any) => setSelectedDate(value)}/> &nbsp; <Button onClick={e => createVault(selectedToken)}>Go</Button> &nbsp; <Button onClick={() => setCreateMode(false)}>Cancel</Button>
                         </>
                     }
                     </div>
@@ -285,7 +285,7 @@ export default function Token() {
                                     {
                                         funding[vault.address] ? <span>Funding. It could take up to 1 minute...</span> :
                                         releasing[vault.address] ? <span>Releasing. It could take up to 1 minute...</span> : <>
-                                            {renderFundButton(token, vault.address)} &nbsp; <Button color='green' disabled={now < vault.releaseDate} onClick={() => release(vault.address)}>Release</Button>
+                                            {renderFundButton(token, vault.address)} &nbsp; <Button disabled={now < vault.releaseDate} onClick={() => release(vault.address)}>Release</Button>
                                         </>
                                     }
                                 </td>
