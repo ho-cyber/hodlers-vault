@@ -11,7 +11,7 @@ import Token from './Token';
 ReactDOM.render(
   <Provider store={store}>
     <Ancestor>
-      <Token/>
+      <Token token={"ETH"}/>
     </Ancestor>
   </Provider>,
   document.getElementById('root')
