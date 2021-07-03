@@ -6,34 +6,92 @@ import ERC20Vault from './abis/ERC20Vault.json';
 import BaseVault from './abis/BaseVault.json';
 import EthVault from './abis/EthVault.json';
 import IERC20 from './abis/IERC20.json';
+import Registry from './abis/Registry.json';
 import { selectWallet } from "./slices/walletSlice";
 import { getSelectedAddress } from "./utils/metaMask";
 import { getTokenContractAddress } from "./utils/supportedChains";
+
+interface IVaults {
+    [key: string] : Array<{
+        address: string;
+        balance: string;
+        releaseDate: Date;
+    }>
+};
 
 export default function Token(props: { token: string }) {
     const wallet = useSelector(selectWallet);
     const [loading, setLoading] = useState(false);
     const [funding, setFunding] = useState(false);
     const [releasing, setReleasing] = useState(false);
-    const [balance, setBalance] = useState("N/A");
+    const [vaults, setVaults] = useState({} as IVaults);
+    const now = new Date();
+
+    const registryAddress = "0x64e3A6F2443d135176F2c82FA9303DA6B4606412";
+    const ethVault = "0x51c0caAE265E0Ec56c3D76516F1Ba094475AD0AD";
 
     useEffect(() => {
         (async () => {
-            await getEthBalance("0xb79e9b1084a41052ba5e0585e23a1b953e77b9f1");
+            await getEthBalance(ethVault);
+            await getVaults();
         })();
-    });
+    }, []);
+
+    async function parseVaults(web3: Web3, rawShit: Array<string>) {
+        const vaults: IVaults = {};
+        const vaultCount = rawShit.length;
+        for (let i = 0; i < vaultCount; i++) {
+            const vault = rawShit[i];
+            const vaultAddress = vault[0];
+            const tokenSymbol = vault[1];
+
+            let balance: string;
+            const releaseDate = new Date(await getReleaseTimestamp(vaultAddress) * 1000);
+            if(tokenSymbol === "ETH"){
+                balance = await getEthBalance(vaultAddress);
+            }else{
+                balance = await getBalanceOf(vaultAddress);
+            }
+
+            const vaultObject = {
+                address: vaultAddress,
+                balance,
+                releaseDate
+            };
+
+            if (vaults[tokenSymbol]) {
+                vaults[tokenSymbol].push(vaultObject);
+            }else{
+                vaults[tokenSymbol] = [vaultObject];
+            }
+        }
+        return vaults;
+    }
+
+    async function getVaults() {
+        const web3 = new Web3(Web3.givenProvider);
+        const registry = new web3.eth.Contract(Registry.abi as any, registryAddress);
+
+        registry.methods.getVaults().call({
+            from: await getSelectedAddress()
+        }, async (err: any, res: any) => setVaults(await parseVaults(web3, res)));
+    }
+
+    async function getReleaseTimestamp(address: string) {
+        const web3 = new Web3(Web3.givenProvider);
+        const contract = new web3.eth.Contract(BaseVault.abi as any, address);
+        return await contract.methods.releaseTimestampInSeconds().call();
+    }
 
     async function getBalanceOf(address: string) {
         const web3 = new Web3(Web3.givenProvider);
         const link = getTokenContract(web3);
-        link.methods.balanceOf(address)
-        .call((err: any, res: string) => res !== null && setBalance(web3.utils.fromWei(res)));
+        return web3.utils.fromWei(await link.methods.balanceOf(address).call());
     }
 
     async function getEthBalance(address: string) {
         const web3 = new Web3(Web3.givenProvider);
-        const ethVault = new web3.eth.Contract(EthVault.abi as any, address);
-        web3.eth.getBalance(address, (err: any, res: string) => res !== null && setBalance(web3.utils.fromWei(res)));
+        return web3.utils.fromWei(await web3.eth.getBalance(address));
     }
 
     async function createVault(e: any, token: string) {
@@ -45,7 +103,7 @@ export default function Token(props: { token: string }) {
             const contract = new web3.eth.Contract(EthVault.abi as any);
             contract.deploy({
                 data: EthVault.bytecode,
-                arguments: ["0x12a3b1B24f0e4f7A036A16a2aF8Fa46Ab7031676", 0]
+                arguments: [registryAddress, 0]
             })
             .send({
                 from: await getSelectedAddress()
@@ -57,7 +115,7 @@ export default function Token(props: { token: string }) {
             const contract = new web3.eth.Contract(ERC20Vault.abi as any);
             contract.deploy({
                 data: ERC20Vault.bytecode,
-                arguments: [ getTokenContractAddress(token, wallet.chainId as string), "0x12a3b1B24f0e4f7A036A16a2aF8Fa46Ab7031676", 0]
+                arguments: [ getTokenContractAddress(token, wallet.chainId as string), "LINK", registryAddress, 0]
             })
             .send({
                 from: await getSelectedAddress()
@@ -100,6 +158,10 @@ export default function Token(props: { token: string }) {
         return new web3.eth.Contract(IERC20.abi as any, "0x01BE23585060835E02B77ef475b0Cc51aA1e0709");
     }
 
+    function formatDate(date: Date){
+        return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    }
+
     return <>
         <p>
             <button disabled={loading} onClick={e => createVault(e, props.token)}>Create Vault</button>
@@ -110,24 +172,25 @@ export default function Token(props: { token: string }) {
     
         <table>
             <thead>
+                <th>Token</th>
                 <th>Vault</th>
                 <th>Balance</th>
                 <th>Release Date</th>
                 <th>Action</th>
             </thead>
             <tbody>
-                <tr>
-                    <td>0x52b0069e28e1e09e8873cc968fc996236f6df3a6 </td>
-                    <td>{balance} LINK</td>
-                    <td>2030-01-01</td>
-                    <td><button onClick={() => fund("0x52b0069e28e1e09e8873cc968fc996236f6df3a6", 1)}>Fund</button> &nbsp; <button onClick={() => release("0x52b0069e28e1e09e8873cc968fc996236f6df3a6")}>Release</button></td>
-                </tr>
-                <tr>
-                    <td>0x52b0069e28e1e09e8873cc968fc996236f6df3a6 </td>
-                    <td>{balance} ETH</td>
-                    <td>2030-01-01</td>
-                    <td><button onClick={() => fundEth("0xb79e9b1084a41052ba5e0585e23a1b953e77b9f1", 1)}>Fund</button> &nbsp; <button onClick={() => release("0xb79e9b1084a41052ba5e0585e23a1b953e77b9f1")}>Release</button></td>
-                </tr>
+                {
+                    Object.keys(vaults).map(token => 
+                        vaults[token].map(vault => {
+                            return <tr>
+                            <td>{token}</td>
+                            <td>{vault.address}</td>
+                            <td>{vault.balance} {token}</td>
+                            <td>{formatDate(vault.releaseDate)}</td>
+                            <td><button onClick={() => token === "ETH" ? fundEth(vault.address, 1) : fund(vault.address, 1)}>Fund</button> &nbsp; <button disabled={now < vault.releaseDate} onClick={() => vault}>Release</button></td>
+                        </tr>
+                    }))
+                }
             </tbody>
         </table>
     </>

@@ -7,13 +7,12 @@ abstract contract BaseVault {
     address payable public owner;
     uint public releaseTimestampInSeconds;
     
-    constructor(address registryAddress, uint _releaseTimestampInSeconds) {
+    constructor(address registryAddress, string memory tokenSymbol, uint _releaseTimestampInSeconds) {
         owner = payable(msg.sender);
         releaseTimestampInSeconds = _releaseTimestampInSeconds;
         
-        // Note: this implementation is not perfect, but it's best for UX.
         Registry registry = Registry(registryAddress);
-        registry.register(address(this));
+        registry.register(address(this), tokenSymbol);
     }
     
     function release() public {

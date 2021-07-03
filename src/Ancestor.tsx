@@ -25,10 +25,6 @@ function App(props: any) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if(wallet.isWalletConnected){
-      Registry.methods.getVaults().call((err: any, result: any) => console.log(err, result));
-    }
-
     (async () => {
         dispatch(setIsMetaMaskInstalled(await isMetaMaskInstalled()));
         dispatch(setIsWalletConnected(await isWalletConnected()));
@@ -46,12 +42,6 @@ function App(props: any) {
         }
     })();
   })
-
-  
-
-  async function transfer() {
-    // Transfer fund to the vault
-  }
 
   async function connect() {
     const provider = getWeb3Provider();
@@ -113,12 +103,18 @@ function App(props: any) {
 
   return (
     <Container>
-    {
-      wallet.isMetaMaskInstalled ? renderContent() : <button>Please install MetaMask</button>
-    }
-    {
-      props.children
-    }
+      {
+        wallet.chainId !== null && <p>You're on {chainIdToString(wallet.chainId as string)}</p>
+      }
+      {
+        wallet.isValidChain === false && <p>Wrong chain. We only support Mainnet and Rinkeby</p>
+      }
+      {
+        !wallet.isWalletConnected && <button onClick={() => connect()}>Connect</button>
+      }
+      {
+        props.children
+      }
     </Container>
   );
 }
