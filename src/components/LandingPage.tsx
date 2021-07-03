@@ -2,7 +2,7 @@ import { Button, Container, Message } from "semantic-ui-react";
 import imageHodl from "../assets/hodl.jpg";
 import imageVault from '../assets/vault.jpg';
 import imageDip from '../assets/dip.jpg';
-import imageEthereum from '../assets/2586005.png';
+import imageEthereum from '../assets/ethereum.png';
 import imageIPFS from '../assets/ipfs.png';
 
 export default function LandingPage() 

@@ -7,14 +7,16 @@ import reportWebVitals from './reportWebVitals';
 import Token from './components/Token';
 import LandingPage from './components/LandingPage';
 import TopLevelThing from './components/TopLevelThing';
+import { HowItWorks } from './components/HowItWorks';
 
 ReactDOM.render(
   <Provider store={store}>
     <TopLevelThing>
-      <App>
+      {/* <App>
         <Token/>
-      </App>
+      </App> */}
       {/* <LandingPage/> */}
+      <HowItWorks/>
     </TopLevelThing>
   </Provider>,
   document.getElementById('root')
