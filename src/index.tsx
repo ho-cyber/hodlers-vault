@@ -8,11 +8,11 @@ import Token from './components/Token';
 import LandingPage from './components/LandingPage';
 import TopLevelThing from './components/TopLevelThing';
 import { HowItWorks } from './components/HowItWorks';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Route, Switch } from 'react-router-dom';
 
 ReactDOM.render(
   <Provider store={store}>
-    <BrowserRouter>
+    <HashRouter>
       <TopLevelThing>
         <Switch>
           <Route path="/tokens"><App><Token/></App></Route>
@@ -20,7 +20,7 @@ ReactDOM.render(
           <Route path="/"><LandingPage/></Route>
         </Switch>
       </TopLevelThing>
-    </BrowserRouter>
+    </HashRouter>
   </Provider>,
   document.getElementById('root')
 );

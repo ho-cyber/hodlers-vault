@@ -1,0 +1,33 @@
+{
+  "files": {
+    "main.js": "/static/js/main.07773fcb.chunk.js",
+    "main.js.map": "/static/js/main.07773fcb.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.39d49965.js",
+    "runtime-main.js.map": "/static/js/runtime-main.39d49965.js.map",
+    "static/css/2.215b82cb.chunk.css": "/static/css/2.215b82cb.chunk.css",
+    "static/js/2.60d70c76.chunk.js": "/static/js/2.60d70c76.chunk.js",
+    "static/js/2.60d70c76.chunk.js.map": "/static/js/2.60d70c76.chunk.js.map",
+    "static/js/3.6c355af4.chunk.js": "/static/js/3.6c355af4.chunk.js",
+    "static/js/3.6c355af4.chunk.js.map": "/static/js/3.6c355af4.chunk.js.map",
+    "index.html": "/index.html",
+    "static/css/2.215b82cb.chunk.css.map": "/static/css/2.215b82cb.chunk.css.map",
+    "static/js/2.60d70c76.chunk.js.LICENSE.txt": "/static/js/2.60d70c76.chunk.js.LICENSE.txt",
+    "static/media/semantic.min.css": "/static/media/outline-icons.ddae9b1b.woff",
+    "static/media/createVault.adef4847.png": "/static/media/createVault.adef4847.png",
+    "static/media/dip.b063e16f.jpg": "/static/media/dip.b063e16f.jpg",
+    "static/media/ethereum.bbcce33a.png": "/static/media/ethereum.bbcce33a.png",
+    "static/media/evil.8938b5a9.png": "/static/media/evil.8938b5a9.png",
+    "static/media/fund.34f2cd18.png": "/static/media/fund.34f2cd18.png",
+    "static/media/hodl.17dc5bd1.jpg": "/static/media/hodl.17dc5bd1.jpg",
+    "static/media/ipfs.2c899a97.png": "/static/media/ipfs.2c899a97.png",
+    "static/media/ownership.a7be344c.png": "/static/media/ownership.a7be344c.png",
+    "static/media/release.940cb00f.png": "/static/media/release.940cb00f.png",
+    "static/media/vault.337f1483.jpg": "/static/media/vault.337f1483.jpg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.39d49965.js",
+    "static/css/2.215b82cb.chunk.css",
+    "static/js/2.60d70c76.chunk.js",
+    "static/js/main.07773fcb.chunk.js"
+  ]
+}
